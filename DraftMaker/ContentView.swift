@@ -2,8 +2,7 @@
 //  ContentView.swift
 //  DraftMaker
 //
-//
-//
+
 
 import SwiftUI
 
@@ -35,7 +34,7 @@ struct ContentView: View {
     @FocusState private var isCustomTextFocused: Bool
     @FocusState private var isCustomRelationFocused: Bool
     @FocusState private var isTextEditorFocused: Bool
-    
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -246,6 +245,7 @@ struct ContentView: View {
                                      (selectedPurpose == "その他（自分で入力）" && customPurposeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ||
                                      (selectedRelation == "その他" && customRelationText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
                         }
+
                         .padding(.horizontal, 20)
                         .padding(.top, 10)
                         
@@ -369,7 +369,6 @@ struct ContentView: View {
             generatedText = ""
             showCopiedAlert = false
         }
-        
         // 実際にAIに渡す用の目的文字列
         let finalPurpose = selectedPurpose == "その他（自分で入力）" ? customPurposeText : selectedPurpose
         let finalRelation = selectedRelation == "その他" ? customRelationText : selectedRelation
@@ -418,7 +417,7 @@ struct ContentView: View {
             }
         }
     }
-    
+  
     // WebのAIサービスを開き、プロンプトをクリップボードにコピー
     func openAIForDraft() {
         let finalPurpose = selectedPurpose == "その他（自分で入力）" ? customPurposeText : selectedPurpose
