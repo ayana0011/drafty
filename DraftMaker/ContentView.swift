@@ -177,6 +177,20 @@ struct ContentView: View {
                         
                         // --- 作成ボタン ---
                         VStack(spacing: 12) {
+                            // その他が選ばれている場合の案内表示
+                            if selectedPurpose == "その他（自分で入力）" || selectedRelation == "その他" {
+                                HStack {
+                                    Image(systemName: "info.circle.fill")
+                                    Text("直接AIにお願いできる「プロンプト」を作成します！")
+                                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                                }
+                                .foregroundColor(.cutePrimary)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 16)
+                                .background(Color.cutePrimary.opacity(0.1))
+                                .cornerRadius(12)
+                            }
+                            
                             Button(action: {
                                 isCustomTextFocused = false
                                 isCustomRelationFocused = false
@@ -377,7 +391,21 @@ struct ContentView: View {
             withAnimation(.spring()) {
                 isLoading = false
                 
-                if selectedPurpose == "シフト変更をお願いしたい" {
+                
+                if selectedPurpose == "その他（自分で入力）" || selectedRelation == "その他" {
+                    generatedText = """
+                    あなたは丁寧なコミュニケーションが得意なアシスタントです。
+                    以下の条件で、LINEやメッセージアプリで送るための文章を作成してください。
+                    
+                    【相手】: \(finalRelation)
+                    【伝えたい内容】: \(finalPurpose)
+                    
+                    【条件】
+                    - 相手との関係性に合わせた適切なトーン（敬語・フランクなど）で書いてください。
+                    - 〇〇（自分の名前）や×月×日（日付）など、後から編集しやすいようにプレースホルダーを入れてください。
+                    - そのままコピペして使えるように、余計な挨拶は省き、メッセージの本文のみを出力してください。
+                    """
+                } else if selectedPurpose == "シフト変更をお願いしたい" {
                     switch selectedRelation {
                     case "バイトの店長": generatedText = "お疲れ様です。〇〇です。\n大変申し訳ないのですが、×月×日のシフトについてご相談があります。\n急な体調不良（または大学の都合など）のため、お休みをいただいてもよろしいでしょうか？\nご迷惑をおかけして大変申し訳ありません。ご検討のほどよろしくお願いいたします。"
                     case "ゼミの先輩": generatedText = "お疲れ様です、〇〇です。\n大変申し訳ありませんが、×月×日のシフト（予定）に入ることが難しくなってしまいました。\n急な変更でご迷惑をおかけしてしまい、本当にすみません。\n後ほど改めてご相談させてください。"
@@ -409,8 +437,6 @@ struct ContentView: View {
                     case "取引先": generatedText = "いつも大変お世話になっております。〇〇株式会社の△△です。\n現在進行中の〇〇の案件につきまして、少しご相談させていただきたくご連絡いたしました。\nお忙しいところ恐縮ですが、明日以降で少しお打ち合わせのお時間を頂戴できないでしょうか？\nご都合の良い候補日時をいくつかいただけますと幸甚です。"
                     default: generatedText = ""
                     }
-                } else if selectedPurpose == "その他（自分で入力）" || selectedRelation == "その他" {
-                    generatedText = "【\(finalRelation)宛】\nお疲れ様です。〇〇です。\n\n「\(finalPurpose)」\n\n（という内容に基づいた、相手に合わせた丁寧な文章がここに入ります！タップして自分で直せます）"
                 } else {
                     generatedText = "お疲れ様です。〇〇です。\n\n（「\(finalPurpose)」に関する、\(finalRelation)向けの生成テキストがここに入ります。）"
                 }
