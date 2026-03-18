@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DraftMaker - メッセージのたたき台を作ろう</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --cute-background: #fff5f5;
+            --cute-card: #ffffff;
+            --cute-primary: #ff9999;
+            --cute-primary-dark: #ff8080;
+            --cute-text: #4d4040;
+            --cute-shadow: rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+            background: linear-gradient(to bottom, var(--cute-background), #ffffff);
+            min-height: 100vh;
+            color: var(--cute-text);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px 16px 80px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--cute-primary);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--cute-text);
+            opacity: 0.7;
+        }
+
+        .section {
+            margin-bottom: 28px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding-left: 4px;
+        }
+
+        .section-title svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--cute-primary);
+        }
+
+        .cards-scroll {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 4px;
+            justify-content: center;
+        }
+
+        .card {
+            flex-shrink: 0;
+            width: 110px;
+            height: 90px;
+            background: var(--cute-card);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 8px var(--cute-shadow);
+            border: 2px solid transparent;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+        }
+
+        .card.selected {
+            background: var(--cute-primary);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 153, 153, 0.4);
+            border-color: var(--cute-primary);
+        }
+
+        .card svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--cute-primary);
+            transition: fill 0.3s;
+        }
+
+        .card.selected svg {
+            fill: white;
+        }
+
+        .card span {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--cute-text);
+            transition: color 0.3s;
+        }
+
+        .card.selected span {
+            color: white;
+        }
+
+        .custom-input-container {
+            padding: 0 4px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .custom-input-container.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .custom-input-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--cute-primary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border: 2px solid rgba(255, 153, 153, 0.3);
+            border-radius: 16px;
+            background: white;
+            color: var(--cute-text);
+            resize: none;
+            min-height: 80px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .custom-input:focus {
+            outline: none;
+            border-color: var(--cute-primary);
+        }
+
+        .custom-input::placeholder {
+            color: #999;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--cute-primary), #ff8080);
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 153, 153, 0.5);
+            margin-top: 10px;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 153, 153, 0.6);
+        }
+
+        .generate-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .generate-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .generate-btn.loading {
+            background: rgba(200, 200, 200, 0.6);
+            box-shadow: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result-container {
+            margin-top: 28px;
+            display: none;
+        }
+
+        .result-container.show {
+            display: block;
+            animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-box {
+            background: var(--cute-card);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .result-text {
+            padding: 20px;
+            min-height: 180px;
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--cute-text);
+            background: #fafafa;
+            border-radius: 16px 16px 16px 4px;
+            margin: 12px;
+            white-space: pre-wrap;
+            border: none;
+            width: calc(100% - 24px);
+            resize: none;
+            font-family: inherit;
+        }
+
+        .result-text:focus {
+            outline: none;
+        }
+
+        .result-actions {
+            display: flex;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--cute-primary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.3s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 153, 153, 0.1);
+        }
+
+        .action-btn:first-child {
+            border-right: 1px solid #f0f0f0;
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--cute-primary);
+        }
+
+        .action-btn.copied {
+            color: #4CAF50;
+        }
+
+        .action-btn.copied svg {
+            fill: #4CAF50;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* スマホ向け：カードを小さく */
+        @media (max-width: 500px) {
+            .card {
+                width: 100px;
+                height: 85px;
+            }
+            .card span {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .card {
+                width: 90px;
+                height: 80px;
+            }
+            .card span {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>DraftMaker</h1>
+            <p>メッセージのたたき台を作ろう</p>
+        </header>
+
+        <!-- 目的選択 -->
+        <section class="section">
+            <div class="section-title">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                <span>どうしたの？</span>
+            </div>
+            <div class="cards-scroll" id="purposeCards">
+                <div class="card selected" data-value="シフト変更をお願いしたい">
+                    <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V9h14v10zm0-12H5V5h14v2zm-7 5h5v5h-5z"/></svg>
+                    <span>シフト変更</span>
+                </div>
+                <div class="card" data-value="角を立てずに誘いを断りたい">
+                    <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm1 9h-2V9h2v7zm7-11c-1.3 0-2.47.84-2.87 2.1-.22.71-.14 1.17.1 1.62L20 12l-2.77 3.28c-.24.45-.32.91-.1 1.62.4 1.26 1.57 2.1 2.87 2.1V21c-2.76 0-5-2.24-5-5h-2c0 2.76-2.24 5-5 5v-2c1.3 0 2.47-.84 2.87-2.1.22-.71.14-1.17-.1-1.62L8 12l2.77-3.28c.24-.45.32-.91.1-1.62C10.47 5.84 9.3 5 8 5V3c2.76 0 5 2.24 5 5h2c0-2.76 2.24-5 5-5v2z"/></svg>
+                    <span>誘いを断る</span>
+                </div>
+                <div class="card" data-value="遅刻の連絡をしたい">
+                    <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                    <span>遅刻の連絡</span>
+                </div>
+                <div class="card" data-value="相談事がある">
+                    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+                    <span>相談事</span>
+                </div>
+                <div class="card" data-value="その他（自分で入力）">
+                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    <span>その他</span>
+                </div>
+            </div>
+            <div class="custom-input-container" id="customInputContainer">
+                <label class="custom-input-label">💬 伝えたい内容を自由に書いてね</label>
+                <textarea class="custom-input" id="customInput" placeholder="例：明日の15時に訪問したいことを伝えたい"></textarea>
+            </div>
+        </section>
+
+        <!-- 相手選択 -->
+        <section class="section">
+            <div class="section-title">
+                <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                <span>だれに送る？</span>
+            </div>
+            <div class="cards-scroll" id="relationCards">
+                <div class="card selected" data-value="バイトの店長">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    <span>バイトの店長</span>
+                </div>
+                <div class="card" data-value="ゼミの先輩">
+                    <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+                    <span>ゼミの先輩</span>
+                </div>
+                <div class="card" data-value="仲の良い友達">
+                    <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+                    <span>仲の良い友達</span>
+                </div>
+                <div class="card" data-value="取引先">
+                    <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+                    <span>取引先</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 生成ボタン -->
+        <button class="generate-btn" id="generateBtn">
+            <svg viewBox="0 0 24 24"><path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29c-.39-.39-1.02-.39-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"/></svg>
+            <span>たたき台を作る！</span>
+        </button>
+
+        <!-- 結果表示 -->
+        <div class="result-container" id="resultContainer">
+            <div class="section-title">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                <span>完成したメッセージ</span>
+            </div>
+            <div class="result-box">
+                <textarea class="result-text" id="resultText" readonly></textarea>
+                <div class="result-actions">
+                    <button class="action-btn" id="copyBtn">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        <span>コピー</span>
+                    </button>
+                    <button class="action-btn" id="shareBtn">
+                        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+                        <span>送る</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">コピーしました！</div>
+
+    <script>
+        // Gemini API呼び出し
+        async function callGeminiAPI(apiKey, purpose, relation) {
+            const prompt = `あなたは日本語のメッセージ作成アシスタントです。
+以下の条件に合わせて、適切なメッセージの下書きを作成してください。
+
+【送り先】${relation}
+【伝えたい内容】${purpose}
+
+注意点：
+- 送り先に応じた適切な敬語レベルを使用してください
+- 「バイトの店長」「取引先」には丁寧な敬語を使用
+- 「ゼミの先輩」には適度な敬語を使用
+- 「仲の良い友達」にはカジュアルな言葉遣いで、絵文字も適度に使用
+- 自然で実用的なメッセージにしてください
+- 「〇〇」などのプレースホルダーは適宜残してください（名前、日時など）
+
+メッセージ本文のみを出力してください（説明は不要です）。`;
+
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        // データ
+        const messages = {
+            "シフト変更をお願いしたい": {
+                "バイトの店長": "お疲れ様です。〇〇です。\n大変申し訳ないのですが、×月×日のシフトについてご相談があります。\n急な体調不良（または大学の都合など）のため、お休みをいただいてもよろしいでしょうか？\nご迷惑をおかけして大変申し訳ありません。ご検討のほどよろしくお願いいたします。",
+                "ゼミの先輩": "お疲れ様です、〇〇です。\n大変申し訳ありませんが、×月×日のシフト（予定）に入ることが難しくなってしまいました。\n急な変更でご迷惑をおかけしてしまい、本当にすみません。\n後ほど改めてご相談させてください。",
+                "仲の良い友達": "ごめん！×月×日のシフトなんだけど、どうしても外せない用事（または体調不良）で行けなくなっちゃって💦\n急で本当に申し訳ないんだけど、もし可能だったら代わってもらえたりしないかな...？\n無理なら全然大丈夫なので教えて！🙇‍♀️",
+                "取引先": "いつもお世話になっております。〇〇株式会社の△△です。\n大変恐縮ですが、×月×日に予定しておりましたお打ち合わせの日程につきまして、急遽変更をお願いできないかと存じます。\nこちらの都合で誠に申し訳ございませんが、別日程にて改めて調整させていただけないでしょうか。\n何卒よろしくお願い申し上げます。"
+            },
+            "角を立てずに誘いを断りたい": {
+                "バイトの店長": "お疲れ様です。〇〇です。お誘いいただきありがとうございます。\n大変恐縮なのですが、その日はどうしても外せない用事があり、参加することができません。\nせっかくお声がけいただいたのに申し訳ありません。またの機会がありましたら、よろしくお願いいたします。",
+                "ゼミの先輩": "お疲れ様です！お誘いありがとうございます。\nすごく行きたいのですが、あいにくその日は予定が入ってしまっておりまして...😭\nせっかくお声がけいただいたのに本当にすみません！また次回ぜひよろしくお願いします！",
+                "仲の良い友達": "誘ってくれてありがとう！✨\nめっちゃ行きたいんだけど、その日どうしても外せない用事があって行けないんだ...ごめんね😭\nまた今度絶対遊ぼう！！",
+                "取引先": "いつも大変お世話になっております。〇〇株式会社の△△です。\nこの度はお食事（お打ち合わせ等）にお誘いいただき、誠にありがとうございます。\n大変恐縮ではございますが、あいにくその日は先約がございまして、お伺いすることが難しい状況でございます。\nせっかくの機会をいただきながら誠に申し訳ございません。またの機会がございましたら、是非よろしくお願い申し上げます。"
+            },
+            "遅刻の連絡をしたい": {
+                "バイトの店長": "お疲れ様です。〇〇です。大変申し訳ありません。\n現在そちらに向かっているのですが、電車の遅延（または交通渋滞など）の影響で、到着が〇〇時〇〇分頃になってしまいそうです。\nご迷惑をおかけして誠に申し訳ございません。急いで向かいます。",
+                "ゼミの先輩": "お疲れ様です、〇〇です。本当にすみません。\n今向かっているのですが、少し到着が遅れてしまいそうです...！\n〇〇分くらいには着けると思います。ご迷惑をおかけして申し訳ありません🙇‍♀️",
+                "仲の良い友達": "ごめん！！今向かってるんだけど、〇〇分くらい遅刻しそうです💦\n本当にごめんね！急いで行く！！🏃‍♀️💨",
+                "取引先": "いつも大変お世話になっております。〇〇株式会社の△△です。\n本日〇〇時よりお約束しておりましたが、交通機関の乱れにより、到着が〇〇分ほど遅れる見込みとなっております。\nお約束のお時間に遅れてしまい、誠に申し訳ございません。\n到着次第、すぐにご連絡（またはお伺い）させていただきます。"
+            },
+            "相談事がある": {
+                "バイトの店長": "お疲れ様です。〇〇です。\nお忙しいところ申し訳ありません。\n今後のシフト（または業務の進め方など）について少しご相談させていただきたいことがあるのですが、お手すきの際にお時間を少し頂戴することは可能でしょうか？\nよろしくお願いいたします。",
+                "ゼミの先輩": "お疲れ様です、〇〇です！\n〇〇の件で少し先輩にご相談したいことがあるのですが...！\nもしお時間ある時があれば、少しだけお話聞かせていただけないでしょうか？🙇‍♀️",
+                "仲の良い友達": "お疲れー！\nちょっと相談したいこと（聞いてほしいこと）があるんだけど、今週末とか時間あったりする？🥺\n暇な時で全然大丈夫だから、また教えてー！",
+                "取引先": "いつも大変お世話になっております。〇〇株式会社の△△です。\n現在進行中の〇〇の案件につきまして、少しご相談させていただきたくご連絡いたしました。\nお忙しいところ恐縮ですが、明日以降で少しお打ち合わせのお時間を頂戴できないでしょうか？\nご都合の良い候補日時をいくつかいただけますと幸いです。"
+            }
+        };
+
+        // 状態
+        let selectedPurpose = "シフト変更をお願いしたい";
+        let selectedRelation = "バイトの店長";
+
+        // DOM要素
+        const purposeCards = document.getElementById('purposeCards');
+        const relationCards = document.getElementById('relationCards');
+        const customInputContainer = document.getElementById('customInputContainer');
+        const customInput = document.getElementById('customInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultText = document.getElementById('resultText');
+        const copyBtn = document.getElementById('copyBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const toast = document.getElementById('toast');
+
+        // Gemini API Key（ユーザーが設定）
+        const GEMINI_API_KEY = localStorage.getItem('geminiApiKey') || '';
+
+        // 初回アクセス時にAPIキーを設定
+        if (!GEMINI_API_KEY) {
+            const key = prompt('Gemini API Keyを入力してください（https://aistudio.google.com/app/apikey で取得）:');
+            if (key) {
+                localStorage.setItem('geminiApiKey', key);
+                location.reload();
+            }
+        }
+
+        // カード選択イベント
+        purposeCards.addEventListener('click', (e) => {
+            const card = e.target.closest('.card');
+            if (!card) return;
+
+            purposeCards.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedPurpose = card.dataset.value;
+
+            if (selectedPurpose === "その他（自分で入力）") {
+                customInputContainer.classList.add('show');
+            } else {
+                customInputContainer.classList.remove('show');
+            }
+        });
+
+        relationCards.addEventListener('click', (e) => {
+            const card = e.target.closest('.card');
+            if (!card) return;
+
+            relationCards.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedRelation = card.dataset.value;
+        });
+
+        // 生成ボタン
+        generateBtn.addEventListener('click', async () => {
+            if (selectedPurpose === "その他（自分で入力）" && !customInput.value.trim()) {
+                return;
+            }
+
+            generateBtn.disabled = true;
+            generateBtn.classList.add('loading');
+            generateBtn.innerHTML = '<div class="spinner"></div><span>考え中...</span>';
+
+            const resetButton = () => {
+                generateBtn.disabled = false;
+                generateBtn.classList.remove('loading');
+                generateBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24"><path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29c-.39-.39-1.02-.39-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"/></svg>
+                    <span>たたき台を作る！</span>
+                `;
+            };
+
+            try {
+                let text;
+
+                if (selectedPurpose === "その他（自分で入力）") {
+                    // AIで生成
+                    text = await callGeminiAPI(GEMINI_API_KEY, customInput.value, selectedRelation);
+                } else {
+                    // プリセットはテンプレート使用
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    text = messages[selectedPurpose]?.[selectedRelation] || "メッセージを生成できませんでした。";
+                }
+
+                resultText.value = text;
+                resultContainer.classList.add('show');
+                resetButton();
+
+                // スクロール
+                resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (error) {
+                resetButton();
+                showToast('エラー: ' + error.message);
+                resultText.value = `エラーが発生しました: ${error.message}\n\nAPI Keyを確認してください。`;
+                resultContainer.classList.add('show');
+            }
+        });
+
+        // コピー
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(resultText.value);
+                copyBtn.classList.add('copied');
+                copyBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    <span>コピーしました</span>
+                `;
+                showToast('コピーしました！');
+
+                setTimeout(() => {
+                    copyBtn.classList.remove('copied');
+                    copyBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        <span>コピー</span>
+                    `;
+                }, 2000);
+            } catch (err) {
+                showToast('コピーに失敗しました');
+            }
+        });
+
+        // シェア
+        shareBtn.addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        text: resultText.value
+                    });
+                } catch (err) {
+                    // ユーザーがキャンセルした場合は何もしない
+                }
+            } else {
+                // Web Share APIが使えない場合はコピー
+                copyBtn.click();
+            }
+        });
+
+        // トースト表示
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
