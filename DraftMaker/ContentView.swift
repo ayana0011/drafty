@@ -317,14 +317,7 @@ struct ContentView: View {
                     default: self.generatedText = ""
                     }
                 } else if self.selectedPurpose == "その他（自分で入力）" {
-                    // カスタム入力のテンプレート
-                    switch self.selectedRelation {
-                    case "バイトの店長": self.generatedText = "お疲れ様です。〇〇です。\n\n\(finalPurpose)についてご連絡させていただきました。\n\nお忙しいところ恐れ入りますが、ご確認いただけますと幸いです。\nよろしくお願いいたします。"
-                    case "ゼミの先輩": self.generatedText = "お疲れ様です、〇〇です！\n\n\(finalPurpose)の件でご連絡しました。\n\nお手すきの際にご確認いただけると嬉しいです🙇‍♀️"
-                    case "仲の良い友達": self.generatedText = "おつかれ〜！\n\n\(finalPurpose)なんだけど、どうかな？🤔\n\nまた教えてね！"
-                    case "取引先": self.generatedText = "いつも大変お世話になっております。〇〇株式会社の△△です。\n\n\(finalPurpose)の件につきまして、ご連絡させていただきました。\n\nお忙しいところ恐縮ですが、ご確認のほどよろしくお願い申し上げます。"
-                    default: self.generatedText = "\(finalPurpose)\n\n（\(self.selectedRelation)向けのメッセージ）"
-                    }
+                    self.generatedText = "【\(self.selectedRelation)宛】\nお疲れ様です。〇〇です。\n\n「\(finalPurpose)」\n\n（という内容に基づいた、相手に合わせた丁寧な文章がここに入ります！）"
                 } else {
                     self.generatedText = "お疲れ様です。〇〇です。\n\n（メッセージを選択してください）"
                 }

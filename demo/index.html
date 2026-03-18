@@ -545,14 +545,7 @@
                 let text;
 
                 if (selectedPurpose === "その他（自分で入力）") {
-                    // カスタム入力のテンプレート
-                    const templates = {
-                        "バイトの店長": `お疲れ様です。〇〇です。\n\n${customInput.value}についてご連絡させていただきました。\n\nお忙しいところ恐れ入りますが、ご確認いただけますと幸いです。\nよろしくお願いいたします。`,
-                        "ゼミの先輩": `お疲れ様です、〇〇です！\n\n${customInput.value}の件でご連絡しました。\n\nお手すきの際にご確認いただけると嬉しいです🙇‍♀️`,
-                        "仲の良い友達": `おつかれ〜！\n\n${customInput.value}なんだけど、どうかな？🤔\n\nまた教えてね！`,
-                        "取引先": `いつも大変お世話になっております。〇〇株式会社の△△です。\n\n${customInput.value}の件につきまして、ご連絡させていただきました。\n\nお忙しいところ恐縮ですが、ご確認のほどよろしくお願い申し上げます。`
-                    };
-                    text = templates[selectedRelation] || `${customInput.value}\n\n（${selectedRelation}向けのメッセージ）`;
+                    text = `【${selectedRelation}宛】\nお疲れ様です。〇〇です。\n\n「${customInput.value}」\n\n（という内容に基づいた、相手に合わせた丁寧な文章がここに入ります！）`;
                 } else {
                     text = messages[selectedPurpose]?.[selectedRelation] || "メッセージを生成できませんでした。";
                 }
