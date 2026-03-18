@@ -14,7 +14,6 @@ struct ContentView: View {
     @State private var generatedText = ""
     @State private var isLoading = false
     @State private var showCopiedAlert = false
-    @State private var errorMessage: String?
 
     let purposes = [
         ("シフト変更", "calendar.badge.clock", "シフト変更をお願いしたい"),
@@ -275,40 +274,12 @@ struct ContentView: View {
             isLoading = true
             generatedText = ""
             showCopiedAlert = false
-            errorMessage = nil
         }
 
-        // 実際にAIに渡す用の目的文字列
+        // 実際に使用する目的文字列
         let finalPurpose = selectedPurpose == "その他（自分で入力）" ? customPurposeText : selectedPurpose
 
-        // 「その他」の場合はAIを使用
-        if selectedPurpose == "その他（自分で入力）" {
-            Task {
-                do {
-                    let result = try await GeminiAPIService.shared.generateMessage(
-                        purpose: finalPurpose,
-                        relation: selectedRelation
-                    )
-                    await MainActor.run {
-                        withAnimation(.spring()) {
-                            isLoading = false
-                            generatedText = result
-                        }
-                    }
-                } catch {
-                    await MainActor.run {
-                        withAnimation(.spring()) {
-                            isLoading = false
-                            errorMessage = error.localizedDescription
-                            generatedText = "エラーが発生しました: \(error.localizedDescription)\n\n【フォールバック】\n\(selectedRelation)宛のメッセージ:\n「\(finalPurpose)」という内容で作成してください。"
-                        }
-                    }
-                }
-            }
-            return
-        }
-
-        // プリセットの場合はテンプレートを使用
+        // テンプレートを使用
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             withAnimation(.spring()) {
                 self.isLoading = false
@@ -345,8 +316,17 @@ struct ContentView: View {
                     case "取引先": self.generatedText = "いつも大変お世話になっております。〇〇株式会社の△△です。\n現在進行中の〇〇の案件につきまして、少しご相談させていただきたくご連絡いたしました。\nお忙しいところ恐縮ですが、明日以降で少しお打ち合わせのお時間を頂戴できないでしょうか？\nご都合の良い候補日時をいくつかいただけますと幸いです。"
                     default: self.generatedText = ""
                     }
+                } else if self.selectedPurpose == "その他（自分で入力）" {
+                    // カスタム入力のテンプレート
+                    switch self.selectedRelation {
+                    case "バイトの店長": self.generatedText = "お疲れ様です。〇〇です。\n\n\(finalPurpose)についてご連絡させていただきました。\n\nお忙しいところ恐れ入りますが、ご確認いただけますと幸いです。\nよろしくお願いいたします。"
+                    case "ゼミの先輩": self.generatedText = "お疲れ様です、〇〇です！\n\n\(finalPurpose)の件でご連絡しました。\n\nお手すきの際にご確認いただけると嬉しいです🙇‍♀️"
+                    case "仲の良い友達": self.generatedText = "おつかれ〜！\n\n\(finalPurpose)なんだけど、どうかな？🤔\n\nまた教えてね！"
+                    case "取引先": self.generatedText = "いつも大変お世話になっております。〇〇株式会社の△△です。\n\n\(finalPurpose)の件につきまして、ご連絡させていただきました。\n\nお忙しいところ恐縮ですが、ご確認のほどよろしくお願い申し上げます。"
+                    default: self.generatedText = "\(finalPurpose)\n\n（\(self.selectedRelation)向けのメッセージ）"
+                    }
                 } else {
-                    self.generatedText = "お疲れ様です。〇〇です。\n\n（「\(finalPurpose)」に関する、\(self.selectedRelation)向けのメッセージ）"
+                    self.generatedText = "お疲れ様です。〇〇です。\n\n（メッセージを選択してください）"
                 }
             }
         }

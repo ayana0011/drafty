@@ -462,45 +462,6 @@
     <div class="toast" id="toast">コピーしました！</div>
 
     <script>
-        // Gemini API呼び出し
-        async function callGeminiAPI(apiKey, purpose, relation) {
-            const prompt = `あなたは日本語のメッセージ作成アシスタントです。
-以下の条件に合わせて、適切なメッセージの下書きを作成してください。
-
-【送り先】${relation}
-【伝えたい内容】${purpose}
-
-注意点：
-- 送り先に応じた適切な敬語レベルを使用してください
-- 「バイトの店長」「取引先」には丁寧な敬語を使用
-- 「ゼミの先輩」には適度な敬語を使用
-- 「仲の良い友達」にはカジュアルな言葉遣いで、絵文字も適度に使用
-- 自然で実用的なメッセージにしてください
-- 「〇〇」などのプレースホルダーは適宜残してください（名前、日時など）
-
-メッセージ本文のみを出力してください（説明は不要です）。`;
-
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: prompt }]
-                    }]
-                })
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error?.message || `HTTP ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data.candidates[0].content.parts[0].text;
-        }
-
         // データ
         const messages = {
             "シフト変更をお願いしたい": {
@@ -545,18 +506,6 @@
         const shareBtn = document.getElementById('shareBtn');
         const toast = document.getElementById('toast');
 
-        // Gemini API Key（ユーザーが設定）
-        const GEMINI_API_KEY = localStorage.getItem('geminiApiKey') || '';
-
-        // 初回アクセス時にAPIキーを設定
-        if (!GEMINI_API_KEY) {
-            const key = prompt('Gemini API Keyを入力してください（https://aistudio.google.com/app/apikey で取得）:');
-            if (key) {
-                localStorage.setItem('geminiApiKey', key);
-                location.reload();
-            }
-        }
-
         // カード選択イベント
         purposeCards.addEventListener('click', (e) => {
             const card = e.target.closest('.card');
@@ -583,7 +532,7 @@
         });
 
         // 生成ボタン
-        generateBtn.addEventListener('click', async () => {
+        generateBtn.addEventListener('click', () => {
             if (selectedPurpose === "その他（自分で入力）" && !customInput.value.trim()) {
                 return;
             }
@@ -592,39 +541,34 @@
             generateBtn.classList.add('loading');
             generateBtn.innerHTML = '<div class="spinner"></div><span>考え中...</span>';
 
-            const resetButton = () => {
+            setTimeout(() => {
+                let text;
+
+                if (selectedPurpose === "その他（自分で入力）") {
+                    // カスタム入力のテンプレート
+                    const templates = {
+                        "バイトの店長": `お疲れ様です。〇〇です。\n\n${customInput.value}についてご連絡させていただきました。\n\nお忙しいところ恐れ入りますが、ご確認いただけますと幸いです。\nよろしくお願いいたします。`,
+                        "ゼミの先輩": `お疲れ様です、〇〇です！\n\n${customInput.value}の件でご連絡しました。\n\nお手すきの際にご確認いただけると嬉しいです🙇‍♀️`,
+                        "仲の良い友達": `おつかれ〜！\n\n${customInput.value}なんだけど、どうかな？🤔\n\nまた教えてね！`,
+                        "取引先": `いつも大変お世話になっております。〇〇株式会社の△△です。\n\n${customInput.value}の件につきまして、ご連絡させていただきました。\n\nお忙しいところ恐縮ですが、ご確認のほどよろしくお願い申し上げます。`
+                    };
+                    text = templates[selectedRelation] || `${customInput.value}\n\n（${selectedRelation}向けのメッセージ）`;
+                } else {
+                    text = messages[selectedPurpose]?.[selectedRelation] || "メッセージを生成できませんでした。";
+                }
+
+                resultText.value = text;
+                resultContainer.classList.add('show');
+
                 generateBtn.disabled = false;
                 generateBtn.classList.remove('loading');
                 generateBtn.innerHTML = `
                     <svg viewBox="0 0 24 24"><path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29c-.39-.39-1.02-.39-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"/></svg>
                     <span>たたき台を作る！</span>
                 `;
-            };
 
-            try {
-                let text;
-
-                if (selectedPurpose === "その他（自分で入力）") {
-                    // AIで生成
-                    text = await callGeminiAPI(GEMINI_API_KEY, customInput.value, selectedRelation);
-                } else {
-                    // プリセットはテンプレート使用
-                    await new Promise(resolve => setTimeout(resolve, 800));
-                    text = messages[selectedPurpose]?.[selectedRelation] || "メッセージを生成できませんでした。";
-                }
-
-                resultText.value = text;
-                resultContainer.classList.add('show');
-                resetButton();
-
-                // スクロール
                 resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } catch (error) {
-                resetButton();
-                showToast('エラー: ' + error.message);
-                resultText.value = `エラーが発生しました: ${error.message}\n\nAPI Keyを確認してください。`;
-                resultContainer.classList.add('show');
-            }
+            }, 800);
         });
 
         // コピー
