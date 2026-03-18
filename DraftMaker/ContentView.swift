@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var generatedText = ""
     @State private var isLoading = false
     @State private var showCopiedAlert = false
+    @State private var showingAISelection = false
     
     let purposes = [
         ("シフト変更", "calendar.badge.clock", "シフト変更をお願いしたい"),
@@ -237,7 +238,7 @@ struct ContentView: View {
                             Button(action: {
                                 isCustomTextFocused = false
                                 isCustomRelationFocused = false
-                                openAIForDraft()
+                                showingAISelection = true
                             }) {
                                 HStack {
                                     Image(systemName: "sparkles")
@@ -373,6 +374,17 @@ struct ContentView: View {
                 }
             }
             .navigationBarHidden(true) // ナビゲーションバーを消してより画面を広く使う
+            .confirmationDialog("どのAIに頼みますか？", isPresented: $showingAISelection, titleVisibility: .visible) {
+                Button("Gemini") {
+                    openAIForDraft(urlString: "https://gemini.google.com/app")
+                }
+                Button("ChatGPT") {
+                    openAIForDraft(urlString: "https://chatgpt.com/")
+                }
+                Button("キャンセル", role: .cancel) {}
+            } message: {
+                Text("プロンプトは自動でコピーされます。AIが開いたら貼り付けてください！")
+            }
         }
     }
     
@@ -445,7 +457,7 @@ struct ContentView: View {
     }
   
     // WebのAIサービスを開き、プロンプトをクリップボードにコピー
-    func openAIForDraft() {
+    func openAIForDraft(urlString: String) {
         let finalPurpose = selectedPurpose == "その他（自分で入力）" ? customPurposeText : selectedPurpose
         let finalRelation = selectedRelation == "その他" ? customRelationText : selectedRelation
         
@@ -464,7 +476,7 @@ struct ContentView: View {
         
         UIPasteboard.general.string = prompt
         
-        if let url = URL(string: "https://duckduckgo.com/chat") {
+        if let url = URL(string: urlString) {
             UIApplication.shared.open(url)
         }
     }
