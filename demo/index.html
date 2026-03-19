@@ -599,11 +599,6 @@
             <span>サクッとたたき台を作る！</span>
         </button>
 
-        <!-- AIボタン -->
-        <button class="ai-btn" id="aiBtn">
-            <svg viewBox="0 0 24 24"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>
-            <span>AIにしっかり考えてもらう</span>
-        </button>
 
         <!-- 結果表示 -->
         <div class="result-container" id="resultContainer">
@@ -685,7 +680,6 @@
         const customRelationContainer = document.getElementById('customRelationContainer');
         const customRelationInput = document.getElementById('customRelationInput');
         const generateBtn = document.getElementById('generateBtn');
-        const aiBtn = document.getElementById('aiBtn');
         const infoMessage = document.getElementById('infoMessage');
         const resultContainer = document.getElementById('resultContainer');
         const resultText = document.getElementById('resultText');
@@ -698,14 +692,12 @@
         const cancelBtn = document.getElementById('cancelBtn');
         const resultAiBtn = document.getElementById('resultAiBtn');
 
-        // 情報メッセージとAIボタンの表示/非表示を更新
+        // 情報メッセージの表示/非表示を更新
         function updateInfoMessage() {
             if (selectedPurpose === "その他（自分で入力）" || selectedRelation === "その他（自分で入力）") {
                 infoMessage.classList.add('show');
-                aiBtn.classList.add('show');
             } else {
                 infoMessage.classList.remove('show');
-                aiBtn.classList.remove('show');
             }
         }
 
@@ -805,14 +797,6 @@
 
                 resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 800);
-        });
-
-        // AIボタン
-        aiBtn.addEventListener('click', () => {
-            if (!isInputValid()) {
-                return;
-            }
-            modalOverlay.classList.add('show');
         });
 
         // 結果エリアのAIボタン
