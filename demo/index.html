@@ -263,13 +263,17 @@
             border: 1.5px solid #6b5b95;
             border-radius: 25px;
             cursor: pointer;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             gap: 8px;
             transition: all 0.3s;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             margin-top: 12px;
+        }
+
+        .ai-btn.show {
+            display: flex;
         }
 
         .ai-btn:hover:not(:disabled) {
@@ -689,12 +693,14 @@
         const chatgptBtn = document.getElementById('chatgptBtn');
         const cancelBtn = document.getElementById('cancelBtn');
 
-        // 情報メッセージの表示/非表示を更新
+        // 情報メッセージとAIボタンの表示/非表示を更新
         function updateInfoMessage() {
             if (selectedPurpose === "その他（自分で入力）" || selectedRelation === "その他（自分で入力）") {
                 infoMessage.classList.add('show');
+                aiBtn.classList.add('show');
             } else {
                 infoMessage.classList.remove('show');
+                aiBtn.classList.remove('show');
             }
         }
 
