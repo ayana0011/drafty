@@ -178,6 +178,36 @@
             color: #999;
         }
 
+        .custom-input-single {
+            min-height: auto;
+            height: auto;
+            padding: 14px;
+        }
+
+        .info-message {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--cute-primary);
+            padding: 8px 16px;
+            background: rgba(255, 153, 153, 0.1);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-message.show {
+            display: flex;
+        }
+
+        .info-message svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--cute-primary);
+            flex-shrink: 0;
+        }
+
         .generate-btn {
             width: 100%;
             padding: 18px;
@@ -221,6 +251,120 @@
         .generate-btn.loading {
             background: rgba(200, 200, 200, 0.6);
             box-shadow: none;
+        }
+
+        .ai-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #6b5b95;
+            background: white;
+            border: 1.5px solid #6b5b95;
+            border-radius: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-top: 12px;
+        }
+
+        .ai-btn:hover:not(:disabled) {
+            background: rgba(107, 91, 149, 0.05);
+        }
+
+        .ai-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .ai-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: #6b5b95;
+        }
+
+        /* AI選択モーダル */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 320px;
+            width: 100%;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--cute-text);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .modal-message {
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.gemini {
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            color: white;
+        }
+
+        .modal-btn.chatgpt {
+            background: linear-gradient(135deg, #10a37f, #1a7f64);
+            color: white;
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .modal-btn.cancel {
+            background: #f5f5f5;
+            color: #666;
         }
 
         .spinner {
@@ -428,13 +572,33 @@
                     <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
                     <span>取引先</span>
                 </div>
+                <div class="card" data-value="その他（自分で入力）">
+                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    <span>その他</span>
+                </div>
+            </div>
+            <div class="custom-input-container" id="customRelationContainer">
+                <label class="custom-input-label">💬 誰に送るか教えてね</label>
+                <input type="text" class="custom-input custom-input-single" id="customRelationInput" placeholder="例：サークルの後輩">
             </div>
         </section>
+
+        <!-- 情報メッセージ -->
+        <div class="info-message" id="infoMessage">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span>直接AIにお願いできる「プロンプト」を作成します！</span>
+        </div>
 
         <!-- 生成ボタン -->
         <button class="generate-btn" id="generateBtn">
             <svg viewBox="0 0 24 24"><path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29c-.39-.39-1.02-.39-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"/></svg>
-            <span>たたき台を作る！</span>
+            <span>サクッとたたき台を作る！</span>
+        </button>
+
+        <!-- AIボタン -->
+        <button class="ai-btn" id="aiBtn">
+            <svg viewBox="0 0 24 24"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>
+            <span>AIにしっかり考えてもらう</span>
         </button>
 
         <!-- 結果表示 -->
@@ -460,6 +624,17 @@
     </div>
 
     <div class="toast" id="toast">コピーしました！</div>
+
+    <!-- AI選択モーダル -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-title">どのAIに頼みますか？</div>
+            <div class="modal-message">プロンプトは自動でコピーされます。<br>AIが開いたら貼り付けてください！</div>
+            <button class="modal-btn gemini" id="geminiBtn">Gemini</button>
+            <button class="modal-btn chatgpt" id="chatgptBtn">ChatGPT</button>
+            <button class="modal-btn cancel" id="cancelBtn">キャンセル</button>
+        </div>
+    </div>
 
     <script>
         // データ
@@ -499,12 +674,29 @@
         const relationCards = document.getElementById('relationCards');
         const customInputContainer = document.getElementById('customInputContainer');
         const customInput = document.getElementById('customInput');
+        const customRelationContainer = document.getElementById('customRelationContainer');
+        const customRelationInput = document.getElementById('customRelationInput');
         const generateBtn = document.getElementById('generateBtn');
+        const aiBtn = document.getElementById('aiBtn');
+        const infoMessage = document.getElementById('infoMessage');
         const resultContainer = document.getElementById('resultContainer');
         const resultText = document.getElementById('resultText');
         const copyBtn = document.getElementById('copyBtn');
         const shareBtn = document.getElementById('shareBtn');
         const toast = document.getElementById('toast');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const geminiBtn = document.getElementById('geminiBtn');
+        const chatgptBtn = document.getElementById('chatgptBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        // 情報メッセージの表示/非表示を更新
+        function updateInfoMessage() {
+            if (selectedPurpose === "その他（自分で入力）" || selectedRelation === "その他（自分で入力）") {
+                infoMessage.classList.add('show');
+            } else {
+                infoMessage.classList.remove('show');
+            }
+        }
 
         // カード選択イベント
         purposeCards.addEventListener('click', (e) => {
@@ -520,6 +712,7 @@
             } else {
                 customInputContainer.classList.remove('show');
             }
+            updateInfoMessage();
         });
 
         relationCards.addEventListener('click', (e) => {
@@ -529,11 +722,46 @@
             relationCards.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
             selectedRelation = card.dataset.value;
+
+            if (selectedRelation === "その他（自分で入力）") {
+                customRelationContainer.classList.add('show');
+            } else {
+                customRelationContainer.classList.remove('show');
+            }
+            updateInfoMessage();
         });
+
+        // 入力チェック関数
+        function isInputValid() {
+            if (selectedPurpose === "その他（自分で入力）" && !customInput.value.trim()) {
+                return false;
+            }
+            if (selectedRelation === "その他（自分で入力）" && !customRelationInput.value.trim()) {
+                return false;
+            }
+            return true;
+        }
+
+        // プロンプト生成関数
+        function generatePrompt() {
+            const finalPurpose = selectedPurpose === "その他（自分で入力）" ? customInput.value : selectedPurpose;
+            const finalRelation = selectedRelation === "その他（自分で入力）" ? customRelationInput.value : selectedRelation;
+
+            return `あなたは丁寧なコミュニケーションが得意なアシスタントです。
+以下の条件で、LINEやメッセージアプリで送るための文章を作成してください。
+
+【相手】: ${finalRelation}
+【伝えたい内容】: ${finalPurpose}
+
+【条件】
+- 相手との関係性に合わせた適切なトーン（敬語・フランクなど）で書いてください。
+- 〇〇（自分の名前）や×月×日（日付）など、後から編集しやすいようにプレースホルダーを入れてください。
+- そのままコピペして使えるように、余計な挨拶（「承知しました」など）は省き、メッセージの本文のみを出力してください。`;
+        }
 
         // 生成ボタン
         generateBtn.addEventListener('click', () => {
-            if (selectedPurpose === "その他（自分で入力）" && !customInput.value.trim()) {
+            if (!isInputValid()) {
                 return;
             }
 
@@ -543,18 +771,13 @@
 
             setTimeout(() => {
                 let text;
+                const finalRelation = selectedRelation === "その他（自分で入力）" ? customRelationInput.value : selectedRelation;
 
-                if (selectedPurpose === "その他（自分で入力）") {
-                    // カスタム入力のテンプレート
-                    const templates = {
-                        "バイトの店長": `お疲れ様です。〇〇です。\n\n${customInput.value}についてご連絡させていただきました。\n\nお忙しいところ恐れ入りますが、ご確認いただけますと幸いです。\nよろしくお願いいたします。`,
-                        "ゼミの先輩": `お疲れ様です、〇〇です！\n\n${customInput.value}の件でご連絡しました。\n\nお手すきの際にご確認いただけると嬉しいです🙇‍♀️`,
-                        "仲の良い友達": `おつかれ〜！\n\n${customInput.value}なんだけど、どうかな？🤔\n\nまた教えてね！`,
-                        "取引先": `いつも大変お世話になっております。〇〇株式会社の△△です。\n\n${customInput.value}の件につきまして、ご連絡させていただきました。\n\nお忙しいところ恐縮ですが、ご確認のほどよろしくお願い申し上げます。`
-                    };
-                    text = templates[selectedRelation] || `${customInput.value}\n\n（${selectedRelation}向けのメッセージ）`;
+                if (selectedPurpose === "その他（自分で入力）" || selectedRelation === "その他（自分で入力）") {
+                    // その他が選ばれた場合はプロンプトを生成
+                    text = generatePrompt();
                 } else {
-                    text = messages[selectedPurpose]?.[selectedRelation] || "メッセージを生成できませんでした。";
+                    text = messages[selectedPurpose]?.[finalRelation] || "メッセージを生成できませんでした。";
                 }
 
                 resultText.value = text;
@@ -564,11 +787,49 @@
                 generateBtn.classList.remove('loading');
                 generateBtn.innerHTML = `
                     <svg viewBox="0 0 24 24"><path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29c-.39-.39-1.02-.39-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"/></svg>
-                    <span>たたき台を作る！</span>
+                    <span>サクッとたたき台を作る！</span>
                 `;
 
                 resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 800);
+        });
+
+        // AIボタン
+        aiBtn.addEventListener('click', () => {
+            if (!isInputValid()) {
+                return;
+            }
+            modalOverlay.classList.add('show');
+        });
+
+        // モーダル処理
+        function openAIService(url) {
+            const prompt = generatePrompt();
+            navigator.clipboard.writeText(prompt).then(() => {
+                showToast('プロンプトをコピーしました！');
+                window.open(url, '_blank');
+                modalOverlay.classList.remove('show');
+            }).catch(() => {
+                showToast('コピーに失敗しました');
+            });
+        }
+
+        geminiBtn.addEventListener('click', () => {
+            openAIService('https://gemini.google.com/app');
+        });
+
+        chatgptBtn.addEventListener('click', () => {
+            openAIService('https://chatgpt.com/');
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            modalOverlay.classList.remove('show');
+        });
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.classList.remove('show');
+            }
         });
 
         // コピー
