@@ -623,6 +623,10 @@
                         <span>送る</span>
                     </button>
                 </div>
+                <button class="ai-btn result-ai-btn" id="resultAiBtn" style="display: none; margin: 12px; border-radius: 12px;">
+                    <svg viewBox="0 0 24 24"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>
+                    <span>AIにしっかり考えてもらう</span>
+                </button>
             </div>
         </div>
     </div>
@@ -692,6 +696,7 @@
         const geminiBtn = document.getElementById('geminiBtn');
         const chatgptBtn = document.getElementById('chatgptBtn');
         const cancelBtn = document.getElementById('cancelBtn');
+        const resultAiBtn = document.getElementById('resultAiBtn');
 
         // 情報メッセージとAIボタンの表示/非表示を更新
         function updateInfoMessage() {
@@ -782,8 +787,10 @@
                 if (selectedPurpose === "その他（自分で入力）" || selectedRelation === "その他（自分で入力）") {
                     // その他が選ばれた場合はプロンプトを生成
                     text = generatePrompt();
+                    resultAiBtn.style.display = 'flex';
                 } else {
                     text = messages[selectedPurpose]?.[finalRelation] || "メッセージを生成できませんでした。";
+                    resultAiBtn.style.display = 'none';
                 }
 
                 resultText.value = text;
@@ -805,6 +812,11 @@
             if (!isInputValid()) {
                 return;
             }
+            modalOverlay.classList.add('show');
+        });
+
+        // 結果エリアのAIボタン
+        resultAiBtn.addEventListener('click', () => {
             modalOverlay.classList.add('show');
         });
 
