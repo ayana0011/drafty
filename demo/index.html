@@ -406,6 +406,15 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         }
 
+        .edit-hint {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px 0;
+            font-size: 13px;
+            color: #888;
+        }
+
         .result-text {
             padding: 20px;
             min-height: 180px;
@@ -424,6 +433,8 @@
 
         .result-text:focus {
             outline: none;
+            background: #fff;
+            border: 2px solid var(--cute-primary);
         }
 
         .result-actions {
@@ -613,7 +624,11 @@
                 <span>完成したメッセージ</span>
             </div>
             <div class="result-box">
-                <textarea class="result-text" id="resultText" readonly></textarea>
+                <div class="edit-hint">
+                    <svg viewBox="0 0 24 24" width="14" height="14"><path fill="#888" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    <span>タップして編集できます</span>
+                </div>
+                <textarea class="result-text" id="resultText"></textarea>
                 <div class="result-actions">
                     <button class="action-btn" id="copyBtn">
                         <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
